@@ -1,0 +1,107 @@
+'''
+    Quick freq tables for Wesleyan intro course
+'''
+
+#==============================================================================
+# setup 
+#==============================================================================
+
+#packages
+import pandas as pd
+
+#filepaths
+trim_in = 'C:/Users/dan/Desktop/coursera/wes1/data/nesarc_trim.csv'
+
+#gonna be going a lot with ages, which come in as text
+def int_converter(age_str):
+    try:
+        x = int(age_str)
+    except:
+        x = 999
+        
+    return x
+
+#also want to get them ranged up
+def age_range(age_num):
+    if age_num == 999:
+        x = 999
+    elif age_num < 16:
+        x = 15
+    elif age_num < 21:
+        x = 20
+    elif age_num < 26:
+        x = 25
+    elif age_num < 31:
+        x = 30
+    elif age_num < 41:
+        x = 40
+    elif age_num < 61:
+        x = 60
+    elif age_num < 998:
+        x = 90
+
+    return x
+
+#kind of want the function to return a number, but also want printable
+age_rng_dict = {15:'1: Under 16', 20:'2: 16 to 20', 25:'3: 21 to 25',
+                30:'4: 26 to 30', 40:'5: 31 to 40', 60:'6: 41 to 60', 
+                90:'7: Over 61', 999:'0: Missing'}
+    
+#==============================================================================
+# read in data
+#==============================================================================
+data0 = pd.read_csv(trim_in, header=0)
+
+#==============================================================================
+# marijuana use
+#==============================================================================
+mj_raw = data0['S3BD5Q2A']
+
+mj_age = [int_converter(i) for i in mj_raw] 
+
+mj_use = ["No" if i == 999 else "Yes" for i in mj_age]
+
+pd.Series(mj_use).value_counts()
+
+mj_users = [i for i in mj_age if i != 999]
+
+mj_rng = [age_rng_dict[age_range(i)] for i in mj_users]
+
+pd.Series(mj_rng).value_counts()
+
+#==============================================================================
+# hard drug use
+#==============================================================================
+
+hd_list = ['S3BD6Q2A', 'S3BD7Q2A', 'S3BD8Q2A', 'S3BD9Q2A', 'S3BD10Q2A']
+
+any_hd = [999 for _ in data0['IDNUM']]
+
+for d in hd_list:
+    
+    curr_age = [int_converter(i) for i in data0[d]]
+    
+    for i, age in enumerate(curr_age):
+        any_hd[i] = age if age < any_hd[i] else any_hd[i]
+
+hd_use = ["No" if i == 999 else "Yes" for i in any_hd]
+
+pd.Series(hd_use).value_counts()
+
+hd_users = [i for i in any_hd if i != 999]
+
+hd_rng = [age_rng_dict[age_range(i)] for i in hd_users]
+
+pd.Series(hd_rng).value_counts()
+    
+    
+
+#==============================================================================
+# age, generally: so I have all these counts by age, what is the overall
+# distribution of age in the data
+#==============================================================================
+
+age_dist = [int_converter(i) for i in data0['AGE']]
+age_rng_dist = [age_rng_dict[age_range(i)] for i in age_dist]
+
+pd.Series(age_rng_dist).value_counts()
